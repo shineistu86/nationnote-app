@@ -57,22 +57,81 @@ function App() {
       const respon = await fetch('https://restcountries.com/v3.1/all');
 
       if (!respon.ok) {
-        console.warn(`API error! status: ${respon.status}. Mencoba alternatif...`);
-        // Coba endpoint alternatif jika endpoint utama gagal
-        const alternatifRespon = await fetch('https://rest-countries-api-eta.vercel.app/api/countries');
-        if (!alternatifRespon.ok) {
-          throw new Error(`Alternatif API error! status: ${alternatifRespon.status}`);
-        }
-        const hasil = await alternatifRespon.json();
-
-        // Pastikan hasil adalah array sebelum menggunakan slice
-        if (Array.isArray(hasil)) {
-          // Kita ambil 10 data aja ya biar gak kebanyakan pas pertama muncul
-          setListNegara(hasil.slice(0, 10));
-        } else {
-          console.error("Hasil dari API alternatif bukan array:", hasil);
-          setListNegara([]);
-        }
+        console.warn(`API error! status: ${respon.status}. Menggunakan data contoh...`);
+        // Gunakan data contoh jika API gagal
+        const sampleData = [
+          {
+            name: { common: "Indonesia" },
+            capital: ["Jakarta"],
+            flags: { png: "https://flagcdn.com/w320/id.png" },
+            region: "Asia",
+            population: 273523615
+          },
+          {
+            name: { common: "United States" },
+            capital: ["Washington, D.C."],
+            flags: { png: "https://flagcdn.com/w320/us.png" },
+            region: "Americas",
+            population: 329484123
+          },
+          {
+            name: { common: "Germany" },
+            capital: ["Berlin"],
+            flags: { png: "https://flagcdn.com/w320/de.png" },
+            region: "Europe",
+            population: 83240525
+          },
+          {
+            name: { common: "Japan" },
+            capital: ["Tokyo"],
+            flags: { png: "https://flagcdn.com/w320/jp.png" },
+            region: "Asia",
+            population: 125836021
+          },
+          {
+            name: { common: "Brazil" },
+            capital: ["Brasília"],
+            flags: { png: "https://flagcdn.com/w320/br.png" },
+            region: "Americas",
+            population: 212559409
+          },
+          {
+            name: { common: "Nigeria" },
+            capital: ["Abuja"],
+            flags: { png: "https://flagcdn.com/w320/ng.png" },
+            region: "Africa",
+            population: 206139587
+          },
+          {
+            name: { common: "Australia" },
+            capital: ["Canberra"],
+            flags: { png: "https://flagcdn.com/w320/au.png" },
+            region: "Oceania",
+            population: 25687041
+          },
+          {
+            name: { common: "Canada" },
+            capital: ["Ottawa"],
+            flags: { png: "https://flagcdn.com/w320/ca.png" },
+            region: "Americas",
+            population: 38005238
+          },
+          {
+            name: { common: "France" },
+            capital: ["Paris"],
+            flags: { png: "https://flagcdn.com/w320/fr.png" },
+            region: "Europe",
+            population: 67391582
+          },
+          {
+            name: { common: "Egypt" },
+            capital: ["Cairo"],
+            flags: { png: "https://flagcdn.com/w320/eg.png" },
+            region: "Africa",
+            population: 102334403
+          }
+        ];
+        setListNegara(sampleData);
       } else {
         const hasil = await respon.json();
 
@@ -82,14 +141,125 @@ function App() {
           setListNegara(hasil.slice(0, 10));
         } else {
           console.error("Hasil dari API bukan array:", hasil);
-          setListNegara([]);
+          // Gunakan data contoh jika respons bukan array
+          const sampleData = [
+            {
+              name: { common: "Indonesia" },
+              capital: ["Jakarta"],
+              flags: { png: "https://flagcdn.com/w320/id.png" },
+              region: "Asia",
+              population: 273523615
+            },
+            {
+              name: { common: "United States" },
+              capital: ["Washington, D.C."],
+              flags: { png: "https://flagcdn.com/w320/us.png" },
+              region: "Americas",
+              population: 329484123
+            },
+            {
+              name: { common: "Germany" },
+              capital: ["Berlin"],
+              flags: { png: "https://flagcdn.com/w320/de.png" },
+              region: "Europe",
+              population: 83240525
+            },
+            {
+              name: { common: "Japan" },
+              capital: ["Tokyo"],
+              flags: { png: "https://flagcdn.com/w320/jp.png" },
+              region: "Asia",
+              population: 125836021
+            },
+            {
+              name: { common: "Brazil" },
+              capital: ["Brasília"],
+              flags: { png: "https://flagcdn.com/w320/br.png" },
+              region: "Americas",
+              population: 212559409
+            },
+            {
+              name: { common: "Nigeria" },
+              capital: ["Abuja"],
+              flags: { png: "https://flagcdn.com/w320/ng.png" },
+              region: "Africa",
+              population: 206139587
+            },
+            {
+              name: { common: "Australia" },
+              capital: ["Canberra"],
+              flags: { png: "https://flagcdn.com/w320/au.png" },
+              region: "Oceania",
+              population: 25687041
+            },
+            {
+              name: { common: "Canada" },
+              capital: ["Ottawa"],
+              flags: { png: "https://flagcdn.com/w320/ca.png" },
+              region: "Americas",
+              population: 38005238
+            },
+            {
+              name: { common: "France" },
+              capital: ["Paris"],
+              flags: { png: "https://flagcdn.com/w320/fr.png" },
+              region: "Europe",
+              population: 67391582
+            },
+            {
+              name: { common: "Egypt" },
+              capital: ["Cairo"],
+              flags: { png: "https://flagcdn.com/w320/eg.png" },
+              region: "Africa",
+              population: 102334403
+            }
+          ];
+          setListNegara(sampleData);
         }
       }
 
       setLoading(false);
     } catch (error) {
       console.error("Aduh, gagal ambil data negaranya nih:", error);
-      setListNegara([]);
+      // Gunakan data contoh jika terjadi error
+      const sampleData = [
+        {
+          name: { common: "Indonesia" },
+          capital: ["Jakarta"],
+          flags: { png: "https://flagcdn.com/w320/id.png" },
+          region: "Asia",
+          population: 273523615
+        },
+        {
+          name: { common: "United States" },
+          capital: ["Washington, D.C."],
+          flags: { png: "https://flagcdn.com/w320/us.png" },
+          region: "Americas",
+          population: 329484123
+        },
+        {
+          name: { common: "Germany" },
+          capital: ["Berlin"],
+          flags: { png: "https://flagcdn.com/w320/de.png" },
+          region: "Europe",
+          population: 83240525
+        },
+        {
+          name: { common: "Japan" },
+          capital: ["Tokyo"],
+          flags: { png: "https://flagcdn.com/w320/jp.png" },
+          region: "Asia",
+          population: 125836021
+        },
+        {
+          name: { common: "Brazil" },
+          capital: ["Brasília"],
+          flags: { png: "https://flagcdn.com/w320/br.png" },
+          region: "Americas",
+          population: 212559409
+        }
+      ];
+      setListNegara(sampleData);
       setLoading(false);
     }
   };
@@ -178,34 +348,89 @@ function App() {
         if (respon.ok) {
           hasil = await respon.json();
         } else {
-          // Coba endpoint alternatif jika endpoint utama gagal
-          try {
-            const alternatifRespon = await fetch(`https://rest-countries-api-eta.vercel.app/api/countries/name/${kataKunci}`);
-            if (alternatifRespon.ok) {
-              hasil = await alternatifRespon.json();
-            } else {
-              alert("Negaranya gak ketemu, coba cek tulisannya deh!");
-              setLoading(false);
-              return;
-            }
-          } catch (altErr) {
-            alert("Negaranya gak ketemu, coba cek tulisannya deh!");
-            setLoading(false);
-            return;
-          }
+          alert("Negaranya gak ketemu, coba cek tulisannya deh!");
+          setLoading(false);
+          return;
         }
       } else {
         // Jika tidak ada kata kunci, ambil semua data untuk filter region
         const respon = await fetch('https://restcountries.com/v3.1/all');
 
         if (!respon.ok) {
-          console.warn(`API error! status: ${respon.status}. Mencoba alternatif...`);
-          // Coba endpoint alternatif jika endpoint utama gagal
-          const alternatifRespon = await fetch('https://rest-countries-api-eta.vercel.app/api/countries');
-          if (!alternatifRespon.ok) {
-            throw new Error(`Alternatif API error! status: ${alternatifRespon.status}`);
-          }
-          hasil = await alternatifRespon.json();
+          console.warn(`API error! status: ${respon.status}. Menggunakan data contoh...`);
+          // Gunakan data contoh jika API gagal
+          hasil = [
+            {
+              name: { common: "Indonesia" },
+              capital: ["Jakarta"],
+              flags: { png: "https://flagcdn.com/w320/id.png" },
+              region: "Asia",
+              population: 273523615
+            },
+            {
+              name: { common: "United States" },
+              capital: ["Washington, D.C."],
+              flags: { png: "https://flagcdn.com/w320/us.png" },
+              region: "Americas",
+              population: 329484123
+            },
+            {
+              name: { common: "Germany" },
+              capital: ["Berlin"],
+              flags: { png: "https://flagcdn.com/w320/de.png" },
+              region: "Europe",
+              population: 83240525
+            },
+            {
+              name: { common: "Japan" },
+              capital: ["Tokyo"],
+              flags: { png: "https://flagcdn.com/w320/jp.png" },
+              region: "Asia",
+              population: 125836021
+            },
+            {
+              name: { common: "Brazil" },
+              capital: ["Brasília"],
+              flags: { png: "https://flagcdn.com/w320/br.png" },
+              region: "Americas",
+              population: 212559409
+            },
+            {
+              name: { common: "Nigeria" },
+              capital: ["Abuja"],
+              flags: { png: "https://flagcdn.com/w320/ng.png" },
+              region: "Africa",
+              population: 206139587
+            },
+            {
+              name: { common: "Australia" },
+              capital: ["Canberra"],
+              flags: { png: "https://flagcdn.com/w320/au.png" },
+              region: "Oceania",
+              population: 25687041
+            },
+            {
+              name: { common: "Canada" },
+              capital: ["Ottawa"],
+              flags: { png: "https://flagcdn.com/w320/ca.png" },
+              region: "Americas",
+              population: 38005238
+            },
+            {
+              name: { common: "France" },
+              capital: ["Paris"],
+              flags: { png: "https://flagcdn.com/w320/fr.png" },
+              region: "Europe",
+              population: 67391582
+            },
+            {
+              name: { common: "Egypt" },
+              capital: ["Cairo"],
+              flags: { png: "https://flagcdn.com/w320/eg.png" },
+              region: "Africa",
+              population: 102334403
+            }
+          ];
         } else {
           hasil = await respon.json();
         }
