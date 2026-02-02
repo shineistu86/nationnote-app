@@ -57,18 +57,33 @@ function App() {
       const respon = await fetch('https://restcountries.com/v3.1/all');
 
       if (!respon.ok) {
-        throw new Error(`HTTP error! status: ${respon.status}`);
-      }
+        console.warn(`API error! status: ${respon.status}. Mencoba alternatif...`);
+        // Coba endpoint alternatif jika endpoint utama gagal
+        const alternatifRespon = await fetch('https://rest-countries-api-eta.vercel.app/api/countries');
+        if (!alternatifRespon.ok) {
+          throw new Error(`Alternatif API error! status: ${alternatifRespon.status}`);
+        }
+        const hasil = await alternatifRespon.json();
 
-      const hasil = await respon.json();
-
-      // Pastikan hasil adalah array sebelum menggunakan slice
-      if (Array.isArray(hasil)) {
-        // Kita ambil 10 data aja ya biar gak kebanyakan pas pertama muncul
-        setListNegara(hasil.slice(0, 10));
+        // Pastikan hasil adalah array sebelum menggunakan slice
+        if (Array.isArray(hasil)) {
+          // Kita ambil 10 data aja ya biar gak kebanyakan pas pertama muncul
+          setListNegara(hasil.slice(0, 10));
+        } else {
+          console.error("Hasil dari API alternatif bukan array:", hasil);
+          setListNegara([]);
+        }
       } else {
-        console.error("Hasil dari API bukan array:", hasil);
-        setListNegara([]);
+        const hasil = await respon.json();
+
+        // Pastikan hasil adalah array sebelum menggunakan slice
+        if (Array.isArray(hasil)) {
+          // Kita ambil 10 data aja ya biar gak kebanyakan pas pertama muncul
+          setListNegara(hasil.slice(0, 10));
+        } else {
+          console.error("Hasil dari API bukan array:", hasil);
+          setListNegara([]);
+        }
       }
 
       setLoading(false);
@@ -163,19 +178,37 @@ function App() {
         if (respon.ok) {
           hasil = await respon.json();
         } else {
-          alert("Negaranya gak ketemu, coba cek tulisannya deh!");
-          setLoading(false);
-          return;
+          // Coba endpoint alternatif jika endpoint utama gagal
+          try {
+            const alternatifRespon = await fetch(`https://rest-countries-api-eta.vercel.app/api/countries/name/${kataKunci}`);
+            if (alternatifRespon.ok) {
+              hasil = await alternatifRespon.json();
+            } else {
+              alert("Negaranya gak ketemu, coba cek tulisannya deh!");
+              setLoading(false);
+              return;
+            }
+          } catch (altErr) {
+            alert("Negaranya gak ketemu, coba cek tulisannya deh!");
+            setLoading(false);
+            return;
+          }
         }
       } else {
         // Jika tidak ada kata kunci, ambil semua data untuk filter region
         const respon = await fetch('https://restcountries.com/v3.1/all');
 
         if (!respon.ok) {
-          throw new Error(`HTTP error! status: ${respon.status}`);
+          console.warn(`API error! status: ${respon.status}. Mencoba alternatif...`);
+          // Coba endpoint alternatif jika endpoint utama gagal
+          const alternatifRespon = await fetch('https://rest-countries-api-eta.vercel.app/api/countries');
+          if (!alternatifRespon.ok) {
+            throw new Error(`Alternatif API error! status: ${alternatifRespon.status}`);
+          }
+          hasil = await alternatifRespon.json();
+        } else {
+          hasil = await respon.json();
         }
-
-        hasil = await respon.json();
       }
 
       // Pastikan hasil adalah array sebelum menggunakan filter
