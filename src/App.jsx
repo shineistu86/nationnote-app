@@ -53,28 +53,20 @@ function App() {
 
       // Coba beberapa endpoint API untuk memastikan salah satunya bekerja
       let respon;
-      let apiUrl = 'https://restcountries.com/v3.1/all';
+      let apiUrl = 'https://restcountries.com/v3.1/all?fields=name,capital,flags,region,population';
 
-      // Coba endpoint utama dulu
+      // Coba endpoint utama dulu tanpa headers
       try {
-        respon = await fetch(apiUrl, {
-          headers: {
-            'Accept': 'application/json',
-          }
-        });
+        respon = await fetch(apiUrl);
       } catch (fetchError) {
         console.warn('Endpoint utama gagal, mencoba alternatif...');
       }
 
       // Jika endpoint utama gagal, coba endpoint alternatif
       if (!respon || !respon.ok) {
-        apiUrl = 'https://restcountries.com/v3.1/all?fields=name,capital,flags,region,population';
+        apiUrl = 'https://restcountries.com/v3.1/all';
         try {
-          respon = await fetch(apiUrl, {
-            headers: {
-              'Accept': 'application/json',
-            }
-          });
+          respon = await fetch(apiUrl);
         } catch (fetchError) {
           console.warn('Endpoint alternatif juga gagal, menggunakan data contoh...');
         }
@@ -393,14 +385,10 @@ function App() {
       if (kataKunci) {
         // Jika ada kata kunci, cari berdasarkan nama
         let respon;
-        let apiUrl = `https://restcountries.com/v3.1/name/${kataKunci}`;
+        let apiUrl = `https://restcountries.com/v3.1/name/${kataKunci}?fields=name,capital,flags,region,population`;
 
         try {
-          respon = await fetch(apiUrl, {
-            headers: {
-              'Accept': 'application/json',
-            }
-          });
+          respon = await fetch(apiUrl); // Tanpa headers
         } catch (fetchError) {
           console.warn('Pencarian nama negara gagal, mencoba alternatif...');
         }
@@ -410,12 +398,8 @@ function App() {
         } else {
           // Coba endpoint alternatif untuk pencarian nama
           try {
-            apiUrl = `https://restcountries.com/v3.1/name/${kataKunci}?fields=name,capital,flags,region,population`;
-            respon = await fetch(apiUrl, {
-              headers: {
-                'Accept': 'application/json',
-              }
-            });
+            apiUrl = `https://restcountries.com/v3.1/name/${kataKunci}`;
+            respon = await fetch(apiUrl); // Tanpa headers
 
             if (respon.ok) {
               hasil = await respon.json();
@@ -433,14 +417,10 @@ function App() {
       } else {
         // Jika tidak ada kata kunci, ambil semua data untuk filter region
         let respon;
-        let apiUrl = 'https://restcountries.com/v3.1/all';
+        let apiUrl = 'https://restcountries.com/v3.1/all?fields=name,capital,flags,region,population';
 
         try {
-          respon = await fetch(apiUrl, {
-            headers: {
-              'Accept': 'application/json',
-            }
-          });
+          respon = await fetch(apiUrl); // Tanpa headers
         } catch (fetchError) {
           console.warn('Endpoint utama gagal, mencoba alternatif...');
         }
