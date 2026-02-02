@@ -664,6 +664,16 @@ function App() {
 
         </div>
 
+        {/* Reset Button */}
+        <div className="mb-6 text-center">
+          <button
+            onClick={ambilSemuaNegara}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition"
+          >
+            Reset ke Data Awal
+          </button>
+        </div>
+
         {/* Tabel Data (Conditional Rendering) */}
         {loading ? (
           <div className="text-center py-20">
