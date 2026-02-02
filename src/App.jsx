@@ -1,41 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import Home from './Home';
+import Favorites from './Favorites';
 
-// Ini komponen kecil buat nampilin tiap baris di tabel
-// Kita pake "props" buat oper data negara ke sini
-const BarisNegara = ({ data, aksiHapus, aksiTambahFavorit, isFavorit }) => {
-  return (
-    <tr className="border-b hover:bg-gray-50">
-      <td className="p-3 text-center">
-        <img src={data.flags?.png || 'https://via.placeholder.com/64x40?text=Flag'} alt={`bendera ${data.name?.common}`} className="w-12 h-8 object-cover rounded shadow-sm mx-auto" />
-      </td>
-      <td className="p-3 font-medium">{data.name?.common || 'N/A'}</td>
-      <td className="p-3">{data.capital && data.capital.length > 0 ? data.capital[0] : 'Ga ada ibukota'}</td>
-      <td className="p-3">{data.region || 'N/A'}</td>
-      <td className="p-3 text-right">{data.population ? data.population.toLocaleString('id-ID') : 'N/A'}</td>
-      <td className="p-3">{data.catatan || 'Tidak ada catatan'}</td>
-      <td className="p-3 text-center flex justify-center space-x-2">
-        {/* Tombol untuk menambahkan ke favorit */}
-        {!isFavorit && (
-          <button
-            onClick={() => aksiTambahFavorit(data)}
-            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition"
-          >
-            Favorit
-          </button>
-        )}
-        {/* Tombol hapus dari favorit */}
-        {isFavorit && (
-          <button
-            onClick={() => aksiHapus(data.name?.common)}
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition" >
-            Hapus
-          </button>
-        )}
-      </td>
-    </tr>
-  );
-};
-
+// Main App component that manages shared state
 function App() {
   // --- TEMPAT NYIMPEN DATA (STATE) ---
   const [listNegara, setListNegara] = useState([]); // Buat nampung daftar negara dari API
@@ -54,18 +22,18 @@ function App() {
   const ambilSemuaNegara = async () => {
     try {
       setLoading(true);
-
+      
       // Coba beberapa endpoint API untuk memastikan salah satunya bekerja
       let respon;
       let apiUrl = 'https://restcountries.com/v3.1/all?fields=name,capital,flags,region,population';
-
+      
       // Coba endpoint utama dulu tanpa headers
       try {
         respon = await fetch(apiUrl);
       } catch (fetchError) {
         console.warn('Endpoint utama gagal, mencoba alternatif...');
       }
-
+      
       // Jika endpoint utama gagal, coba endpoint alternatif
       if (!respon || !respon.ok) {
         apiUrl = 'https://restcountries.com/v3.1/all';
@@ -75,7 +43,7 @@ function App() {
           console.warn('Endpoint alternatif juga gagal, menggunakan data contoh...');
         }
       }
-
+      
       // Jika masih gagal, gunakan data contoh
       if (!respon || !respon.ok) {
         console.warn(`API error! status: ${respon ? respon.status : 'unknown'}. Menggunakan data contoh...`);
@@ -383,20 +351,20 @@ function App() {
 
     try {
       setLoading(true);
-
+      
       let hasil = [];
-
+      
       if (kataKunci) {
         // Jika ada kata kunci, cari berdasarkan nama
         let respon;
         let apiUrl = `https://restcountries.com/v3.1/name/${kataKunci}?fields=name,capital,flags,region,population`;
-
+        
         try {
           respon = await fetch(apiUrl); // Tanpa headers
         } catch (fetchError) {
           console.warn('Pencarian nama negara gagal, mencoba alternatif...');
         }
-
+        
         if (respon && respon.ok) {
           hasil = await respon.json();
         } else {
@@ -404,7 +372,7 @@ function App() {
           try {
             apiUrl = `https://restcountries.com/v3.1/name/${kataKunci}`;
             respon = await fetch(apiUrl); // Tanpa headers
-
+            
             if (respon.ok) {
               hasil = await respon.json();
             } else {
@@ -422,13 +390,13 @@ function App() {
         // Jika tidak ada kata kunci, ambil semua data untuk filter region
         let respon;
         let apiUrl = 'https://restcountries.com/v3.1/all?fields=name,capital,flags,region,population';
-
+        
         try {
           respon = await fetch(apiUrl); // Tanpa headers
         } catch (fetchError) {
           console.warn('Endpoint utama gagal, mencoba alternatif...');
         }
-
+        
         if (!respon || !respon.ok) {
           console.warn(`API error! status: ${respon ? respon.status : 'unknown'}. Menggunakan data contoh...`);
           // Gunakan data contoh jika API gagal
@@ -538,7 +506,7 @@ function App() {
       alert("Negara ini udah ada di favorit kamu!");
       return;
     }
-
+    
     setSelectedCountry(negara);
     setInputCatatan(''); // Reset catatan
     setShowNoteModal(true);
@@ -547,14 +515,14 @@ function App() {
   // Fungsi untuk menambahkan negara ke favorit dengan catatan
   const handleTambahFavorit = () => {
     if (!selectedCountry) return;
-
+    
     // Tambahkan negara ke list favorit dengan catatan
     const negaraFavorit = {
       ...selectedCountry,
       isFavorite: true,
       catatan: inputCatatan || '' // Tambahkan catatan jika ada
     };
-
+    
     setListFavorit([...listFavorit, negaraFavorit]);
     setShowNoteModal(false);
     setInputCatatan('');
@@ -571,209 +539,119 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-5 md:p-10 font-sans">
-      <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-2xl p-6">
-
-        {/* Header */}
-        <header className="text-center mb-10">
-          <h1 className="text-4xl font-extrabold text-blue-600">NationNote 🌏</h1>
-          <p className="text-gray-500 mt-2">Catat dan cari info negara favoritmu di sini!</p>
-        </header>
-
-        {/* Form Section */}
-        <div className="grid md:grid-cols-1 gap-6 mb-10">
-
-          {/* Form Cari (Read/Search) */}
-          <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
-            <h2 className="font-bold text-blue-800 mb-3">Cari & Filter Negara</h2>
-            <form onSubmit={handleCari} className="space-y-3">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  className="flex-1 p-2 border rounded-lg focus:outline-blue-400"
-                  placeholder="Cari negara..."
-                  value={kataKunci}
-                  onChange={(e) => setKataKunci(e.target.value)}
-                />
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Cari</button>
+    <Router>
+      <div className="min-h-screen bg-gray-100 p-5 md:p-10 font-sans">
+        <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-2xl p-6">
+          
+          {/* Navigation Header */}
+          <nav className="mb-10">
+            <div className="flex justify-between items-center border-b pb-4">
+              <h1 className="text-3xl font-extrabold text-blue-600">NationNote 🌏</h1>
+              <div className="flex space-x-4">
+                <Link 
+                  to="/" 
+                  className={({ isActive }) => 
+                    isActive 
+                      ? "bg-blue-600 text-white px-4 py-2 rounded-lg font-medium" 
+                      : "bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300"
+                  }
+                >
+                  Beranda
+                </Link>
+                <Link 
+                  to="/favorites" 
+                  className={({ isActive }) => 
+                    isActive 
+                      ? "bg-purple-600 text-white px-4 py-2 rounded-lg font-medium" 
+                      : "bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300"
+                  }
+                >
+                  Favorit ({listFavorit.length})
+                </Link>
               </div>
+            </div>
+            <p className="text-gray-500 mt-2 text-center">Catat dan cari info negara favoritmu di sini!</p>
+          </nav>
 
-              {/* Filter per Wilayah */}
-              <div className="pt-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Filter per Wilayah:</label>
-                <div className="flex gap-2">
-                  <select
-                    value={selectedRegion}
-                    onChange={(e) => filterByRegion(e.target.value)}
-                    className="flex-1 p-2 border rounded-lg focus:outline-blue-400"
-                  >
-                    <option value="">Semua Wilayah</option>
-                    <option value="Asia">Asia</option>
-                    <option value="Europe">Europe</option>
-                    <option value="Africa">Africa</option>
-                    <option value="Americas">Americas</option>
-                    <option value="Oceania">Oceania</option>
-                  </select>
+          {/* Routes */}
+          <Routes>
+            <Route 
+              path="/" 
+              element={
+                <Home 
+                  listNegara={listNegara}
+                  loading={loading}
+                  kataKunci={kataKunci}
+                  setKataKunci={setKataKunci}
+                  selectedRegion={selectedRegion}
+                  setSelectedRegion={setSelectedRegion}
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  sortList={sortList}
+                  handleCari={handleCari}
+                  filterByRegion={filterByRegion}
+                  handleBukaCatatanFavorit={handleBukaCatatanFavorit}
+                  listFavorit={listFavorit}
+                  ambilSemuaNegara={ambilSemuaNegara}
+                />
+              } 
+            />
+            <Route 
+              path="/favorites" 
+              element={
+                <Favorites 
+                  listFavorit={listFavorit}
+                  loading={loading}
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  sortList={sortList}
+                  handleHapus={handleHapus}
+                />
+              } 
+            />
+          </Routes>
+
+          {/* Modal untuk menambahkan catatan */}
+          {showNoteModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg w-96 max-w-90vw">
+                <h3 className="text-lg font-bold mb-4">Tambah Catatan untuk {selectedCountry?.name?.common}</h3>
+                <textarea
+                  className="w-full p-2 border rounded mb-4"
+                  rows="4"
+                  placeholder="Tulis catatan pribadi tentang negara ini..."
+                  value={inputCatatan}
+                  onChange={(e) => setInputCatatan(e.target.value)}
+                />
+                <div className="flex justify-end space-x-2">
                   <button
-                    type="button"
                     onClick={() => {
-                      setSelectedRegion('');
-                      setKataKunci('');
-                      ambilSemuaNegara();
+                      setShowNoteModal(false);
+                      setInputCatatan('');
+                      setSelectedCountry(null);
                     }}
-                    className="bg-gray-500 text-white px-3 py-2 rounded-lg hover:bg-gray-600"
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
                   >
-                    Reset
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleTambahFavorit}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                  >
+                    Simpan ke Favorit
                   </button>
                 </div>
               </div>
-            </form>
-          </div>
-
-        </div>
-
-        {/* Reset Button */}
-        <div className="mb-6 text-center">
-          <button
-            onClick={ambilSemuaNegara}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition"
-          >
-            Reset ke Data Awal
-          </button>
-        </div>
-
-        {/* Tabel Data (Conditional Rendering) */}
-        {loading ? (
-          <div className="text-center py-20">
-            <p className="text-xl animate-bounce">Sabar ya, lagi ngambil data...</p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* Tabel untuk negara favorit */}
-            {listFavorit.length > 0 && (
-              <div>
-                <h3 className="text-xl font-bold text-purple-700 mb-4">Negara Favorit Kamu</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-purple-200 text-gray-700 uppercase text-sm">
-                        <th className="p-3 text-center">Bendera</th>
-                        <th className="p-3">Nama</th>
-                        <th className="p-3">Ibukota</th>
-                        <th className="p-3">Wilayah</th>
-                        <th className="p-3 text-right">Populasi</th>
-                        <th className="p-3">Catatan</th>
-                        <th className="p-3 text-center">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {listFavorit.map((item, index) => (
-                        <BarisNegara
-                          key={`fav-${item.name?.common || index}`}
-                          data={item}
-                          aksiHapus={handleHapus}
-                          aksiTambahFavorit={handleBukaCatatanFavorit}
-                          isFavorit={true}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* Tabel untuk hasil pencarian/API */}
-            <div>
-              <h3 className="text-xl font-bold text-blue-700 mb-4">Hasil Pencarian</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-gray-200 text-gray-700 uppercase text-sm">
-                      <th className="p-3 text-center cursor-pointer hover:bg-gray-300" onClick={() => sortList('flags')}>
-                        Bendera {sortField === 'flags' && (sortDirection === 'asc' ? '↑' : '↓')}
-                      </th>
-                      <th className="p-3 cursor-pointer hover:bg-gray-300" onClick={() => sortList('name')}>
-                        Nama {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
-                      </th>
-                      <th className="p-3 cursor-pointer hover:bg-gray-300" onClick={() => sortList('capital')}>
-                        Ibukota {sortField === 'capital' && (sortDirection === 'asc' ? '↑' : '↓')}
-                      </th>
-                      <th className="p-3 cursor-pointer hover:bg-gray-300" onClick={() => sortList('region')}>
-                        Wilayah {sortField === 'region' && (sortDirection === 'asc' ? '↑' : '↓')}
-                      </th>
-                      <th className="p-3 text-right cursor-pointer hover:bg-gray-300" onClick={() => sortList('population')}>
-                        Populasi {sortField === 'population' && (sortDirection === 'asc' ? '↑' : '↓')}
-                      </th>
-                      <th className="p-3">Catatan</th>
-                      <th className="p-3 text-center">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {listNegara.length > 0 ? (
-                      listNegara.map((item, index) => {
-                        const isFavorit = listFavorit.some(fav => fav.name?.common === item.name?.common);
-                        return (
-                          <BarisNegara
-                            key={`api-${item.name?.common || index}`}
-                            data={item}
-                            aksiHapus={handleHapus}
-                            aksiTambahFavorit={handleBukaCatatanFavorit}
-                            isFavorit={isFavorit}
-                          />
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan="7" className="p-10 text-center text-gray-400">Wah, listnya kosong nih...</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Modal untuk menambahkan catatan */}
-        {showNoteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg w-96 max-w-90vw">
-              <h3 className="text-lg font-bold mb-4">Tambah Catatan untuk {selectedCountry?.name?.common}</h3>
-              <textarea
-                className="w-full p-2 border rounded mb-4"
-                rows="4"
-                placeholder="Tulis catatan pribadi tentang negara ini..."
-                value={inputCatatan}
-                onChange={(e) => setInputCatatan(e.target.value)}
-              />
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={() => {
-                    setShowNoteModal(false);
-                    setInputCatatan('');
-                    setSelectedCountry(null);
-                  }}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleTambahFavorit}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                >
-                  Simpan ke Favorit
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <footer className="mt-10 text-center text-gray-400 text-sm">
-          &copy; 2024 NationNote - Dibuat dengan cinta dan React
-        </footer>
+          <footer className="mt-10 text-center text-gray-400 text-sm">
+            &copy; 2024 NationNote - Dibuat dengan cinta dan React
+          </footer>
+        </div>
       </div>
-    </div>
+    </Router>
   );
 }
 
-export default App
+export default App;
