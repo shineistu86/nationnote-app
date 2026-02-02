@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
 import Home from './Home';
 import Favorites from './Favorites';
 
@@ -548,26 +548,26 @@ function App() {
             <div className="flex justify-between items-center border-b pb-4">
               <h1 className="text-3xl font-extrabold text-blue-600">NationNote 🌏</h1>
               <div className="flex space-x-4">
-                <Link 
-                  to="/" 
-                  className={({ isActive }) => 
-                    isActive 
-                      ? "bg-blue-600 text-white px-4 py-2 rounded-lg font-medium" 
+                <NavLink
+                  to="/"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "bg-blue-600 text-white px-4 py-2 rounded-lg font-medium"
                       : "bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300"
                   }
                 >
                   Beranda
-                </Link>
-                <Link 
-                  to="/favorites" 
-                  className={({ isActive }) => 
-                    isActive 
-                      ? "bg-purple-600 text-white px-4 py-2 rounded-lg font-medium" 
+                </NavLink>
+                <NavLink
+                  to="/favorites"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "bg-purple-600 text-white px-4 py-2 rounded-lg font-medium"
                       : "bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300"
                   }
                 >
                   Favorit ({listFavorit.length})
-                </Link>
+                </NavLink>
               </div>
             </div>
             <p className="text-gray-500 mt-2 text-center">Catat dan cari info negara favoritmu di sini!</p>
