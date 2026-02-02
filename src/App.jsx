@@ -75,16 +75,20 @@ function App() {
     ambilSemuaNegara();
   }, []);
 
-  // Apply region filter when selectedRegion changes
+  // Apply region filter when selectedRegion changes (but only if no search term is active)
   useEffect(() => {
-    if (selectedRegion) {
-      const filtered = listNegara.filter(country => country.region === selectedRegion);
-      setListNegara(filtered);
-    } else if (!kataKunci) {
-      // Only reload if no search term is active
+    if (!kataKunci && selectedRegion) {
+      // Only apply region filter if there's no active search term
+      const allCountriesResponse = fetch('https://restcountries.com/v3.1/all');
+      allCountriesResponse.then(res => res.json()).then(allCountries => {
+        const filtered = allCountries.filter(country => country.region === selectedRegion);
+        setListNegara(filtered);
+      });
+    } else if (!kataKunci && !selectedRegion) {
+      // Reload all countries if both filters are cleared
       ambilSemuaNegara();
     }
-  }, [selectedRegion]);
+  }, [selectedRegion, kataKunci]);
 
   // --- FILTER BY REGION LOGIC ---
   const filterByRegion = (region) => {
@@ -139,9 +143,11 @@ function App() {
 
     try {
       setLoading(true);
+
       let hasil = [];
 
       if (kataKunci) {
+        // Jika ada kata kunci, cari berdasarkan nama
         const respon = await fetch(`https://restcountries.com/v3.1/name/${kataKunci}`);
         if (respon.ok) {
           hasil = await respon.json();
@@ -151,12 +157,12 @@ function App() {
           return;
         }
       } else {
-        // Ambil semua data jika hanya filter region yang aktif
+        // Jika tidak ada kata kunci, ambil semua data
         const respon = await fetch('https://restcountries.com/v3.1/all');
         hasil = await respon.json();
       }
 
-      // Terapkan filter region jika ada
+      // Terapkan filter region jika ada (baik dengan maupun tanpa kata kunci)
       if (selectedRegion) {
         hasil = hasil.filter(country => country.region === selectedRegion);
       }
