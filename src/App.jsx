@@ -1,662 +1,239 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
-import Home from './Home';
-import Favorites from './Favorites';
 
-// Main App component that manages shared state
-function App() {
-  // --- TEMPAT NYIMPEN DATA (STATE) ---
-  const [listNegara, setListNegara] = useState([]); // Buat nampung daftar negara dari API
-  const [listFavorit, setListFavorit] = useState([]); // Buat nampung daftar negara favorit
-  const [loading, setLoading] = useState(true); // Buat status loading pas ambil API
-  const [kataKunci, setKataKunci] = useState(''); // Buat nyatet apa yang diketik di kolom cari
-  const [selectedRegion, setSelectedRegion] = useState(''); // Buat nyaring berdasarkan wilayah
-  const [sortField, setSortField] = useState('name'); // Bidang untuk sorting
-  const [sortDirection, setSortDirection] = useState('asc'); // Arah sorting
-  const [inputCatatan, setInputCatatan] = useState(''); // Catatan pribadi untuk negara favorit
-  const [showNoteModal, setShowNoteModal] = useState(false); // Menampilkan modal untuk menambahkan catatan
-  const [selectedCountry, setSelectedCountry] = useState(null); // Negara yang dipilih untuk ditambahkan catatan
+const App = () => {
+  const [countries, setCountries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const countriesPerPage = 8;
 
-  // --- AMBIL DATA DARI API ---
-  // Fungsi ini jalan otomatis pas halaman pertama kali dibuka
-  const ambilSemuaNegara = async () => {
+  // Fetch countries from API
+  const fetchCountries = async () => {
     try {
       setLoading(true);
+      const response = await fetch('https://restcountries.com/v3.1/all?fields=name,capital,flags,region,population');
+      const data = await response.json();
       
-      // Coba beberapa endpoint API untuk memastikan salah satunya bekerja
-      let respon;
-      let apiUrl = 'https://restcountries.com/v3.1/all?fields=name,capital,flags,region,population';
+      // Calculate total pages based on data
+      const total = Math.ceil(data.length / countriesPerPage);
+      setTotalPages(total);
       
-      // Coba endpoint utama dulu tanpa headers
-      try {
-        respon = await fetch(apiUrl);
-      } catch (fetchError) {
-        console.warn('Endpoint utama gagal, mencoba alternatif...');
-      }
+      // Get countries for current page
+      const startIndex = (currentPage - 1) * countriesPerPage;
+      const endIndex = startIndex + countriesPerPage;
+      const paginatedData = data.slice(startIndex, endIndex);
       
-      // Jika endpoint utama gagal, coba endpoint alternatif
-      if (!respon || !respon.ok) {
-        apiUrl = 'https://restcountries.com/v3.1/all';
-        try {
-          respon = await fetch(apiUrl);
-        } catch (fetchError) {
-          console.warn('Endpoint alternatif juga gagal, menggunakan data contoh...');
-        }
-      }
-      
-      // Jika masih gagal, gunakan data contoh
-      if (!respon || !respon.ok) {
-        console.warn(`API error! status: ${respon ? respon.status : 'unknown'}. Menggunakan data contoh...`);
-        const sampleData = [
-          {
-            name: { common: "Indonesia" },
-            capital: ["Jakarta"],
-            flags: { png: "https://flagcdn.com/w320/id.png" },
-            region: "Asia",
-            population: 273523615
-          },
-          {
-            name: { common: "United States" },
-            capital: ["Washington, D.C."],
-            flags: { png: "https://flagcdn.com/w320/us.png" },
-            region: "Americas",
-            population: 329484123
-          },
-          {
-            name: { common: "Germany" },
-            capital: ["Berlin"],
-            flags: { png: "https://flagcdn.com/w320/de.png" },
-            region: "Europe",
-            population: 83240525
-          },
-          {
-            name: { common: "Japan" },
-            capital: ["Tokyo"],
-            flags: { png: "https://flagcdn.com/w320/jp.png" },
-            region: "Asia",
-            population: 125836021
-          },
-          {
-            name: { common: "Brazil" },
-            capital: ["Brasília"],
-            flags: { png: "https://flagcdn.com/w320/br.png" },
-            region: "Americas",
-            population: 212559409
-          },
-          {
-            name: { common: "Nigeria" },
-            capital: ["Abuja"],
-            flags: { png: "https://flagcdn.com/w320/ng.png" },
-            region: "Africa",
-            population: 206139587
-          },
-          {
-            name: { common: "Australia" },
-            capital: ["Canberra"],
-            flags: { png: "https://flagcdn.com/w320/au.png" },
-            region: "Oceania",
-            population: 25687041
-          },
-          {
-            name: { common: "Canada" },
-            capital: ["Ottawa"],
-            flags: { png: "https://flagcdn.com/w320/ca.png" },
-            region: "Americas",
-            population: 38005238
-          },
-          {
-            name: { common: "France" },
-            capital: ["Paris"],
-            flags: { png: "https://flagcdn.com/w320/fr.png" },
-            region: "Europe",
-            population: 67391582
-          },
-          {
-            name: { common: "Egypt" },
-            capital: ["Cairo"],
-            flags: { png: "https://flagcdn.com/w320/eg.png" },
-            region: "Africa",
-            population: 102334403
-          }
-        ];
-        setListNegara(sampleData);
-      } else {
-        const hasil = await respon.json();
-
-        // Pastikan hasil adalah array sebelum menggunakan slice
-        if (Array.isArray(hasil)) {
-          // Kita ambil 10 data aja ya biar gak kebanyakan pas pertama muncul
-          setListNegara(hasil.slice(0, 10));
-        } else {
-          console.error("Hasil dari API bukan array:", hasil);
-          // Gunakan data contoh jika respons bukan array
-          const sampleData = [
-            {
-              name: { common: "Indonesia" },
-              capital: ["Jakarta"],
-              flags: { png: "https://flagcdn.com/w320/id.png" },
-              region: "Asia",
-              population: 273523615
-            },
-            {
-              name: { common: "United States" },
-              capital: ["Washington, D.C."],
-              flags: { png: "https://flagcdn.com/w320/us.png" },
-              region: "Americas",
-              population: 329484123
-            },
-            {
-              name: { common: "Germany" },
-              capital: ["Berlin"],
-              flags: { png: "https://flagcdn.com/w320/de.png" },
-              region: "Europe",
-              population: 83240525
-            },
-            {
-              name: { common: "Japan" },
-              capital: ["Tokyo"],
-              flags: { png: "https://flagcdn.com/w320/jp.png" },
-              region: "Asia",
-              population: 125836021
-            },
-            {
-              name: { common: "Brazil" },
-              capital: ["Brasília"],
-              flags: { png: "https://flagcdn.com/w320/br.png" },
-              region: "Americas",
-              population: 212559409
-            },
-            {
-              name: { common: "Nigeria" },
-              capital: ["Abuja"],
-              flags: { png: "https://flagcdn.com/w320/ng.png" },
-              region: "Africa",
-              population: 206139587
-            },
-            {
-              name: { common: "Australia" },
-              capital: ["Canberra"],
-              flags: { png: "https://flagcdn.com/w320/au.png" },
-              region: "Oceania",
-              population: 25687041
-            },
-            {
-              name: { common: "Canada" },
-              capital: ["Ottawa"],
-              flags: { png: "https://flagcdn.com/w320/ca.png" },
-              region: "Americas",
-              population: 38005238
-            },
-            {
-              name: { common: "France" },
-              capital: ["Paris"],
-              flags: { png: "https://flagcdn.com/w320/fr.png" },
-              region: "Europe",
-              population: 67391582
-            },
-            {
-              name: { common: "Egypt" },
-              capital: ["Cairo"],
-              flags: { png: "https://flagcdn.com/w320/eg.png" },
-              region: "Africa",
-              population: 102334403
-            }
-          ];
-          setListNegara(sampleData);
-        }
-      }
-
+      setCountries(paginatedData);
       setLoading(false);
     } catch (error) {
-      console.error("Aduh, gagal ambil data negaranya nih:", error);
-      // Gunakan data contoh jika terjadi error
-      const sampleData = [
-        {
-          name: { common: "Indonesia" },
-          capital: ["Jakarta"],
-          flags: { png: "https://flagcdn.com/w320/id.png" },
-          region: "Asia",
-          population: 273523615
-        },
-        {
-          name: { common: "United States" },
-          capital: ["Washington, D.C."],
-          flags: { png: "https://flagcdn.com/w320/us.png" },
-          region: "Americas",
-          population: 329484123
-        },
-        {
-          name: { common: "Germany" },
-          capital: ["Berlin"],
-          flags: { png: "https://flagcdn.com/w320/de.png" },
-          region: "Europe",
-          population: 83240525
-        },
-        {
-          name: { common: "Japan" },
-          capital: ["Tokyo"],
-          flags: { png: "https://flagcdn.com/w320/jp.png" },
-          region: "Asia",
-          population: 125836021
-        },
-        {
-          name: { common: "Brazil" },
-          capital: ["Brasília"],
-          flags: { png: "https://flagcdn.com/w320/br.png" },
-          region: "Americas",
-          population: 212559409
-        }
-      ];
-      setListNegara(sampleData);
+      console.error('Error fetching countries:', error);
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    ambilSemuaNegara();
-  }, []);
-
-  // Apply region filter when selectedRegion changes (but only if no search term is active)
-  useEffect(() => {
-    if (!kataKunci && selectedRegion) {
-      // Only apply region filter if there's no active search term
-      // But don't trigger this effect when the search button is clicked
-      // The search button will handle region filtering in handleCari
-    } else if (!kataKunci && !selectedRegion) {
-      // Reload all countries if both filters are cleared
-      ambilSemuaNegara();
-    }
-  }, [selectedRegion, kataKunci]); // Only update when region or keyword changes, not on search
-
-  // --- FILTER BY REGION LOGIC ---
-  const filterByRegion = (region) => {
-    setSelectedRegion(region);
-  };
-
-  // --- SORTING LOGIC ---
-  const sortList = (field) => {
-    let direction = 'asc';
-    if (sortField === field && sortDirection === 'asc') {
-      direction = 'desc';
-    }
-    setSortDirection(direction);
-    setSortField(field);
-
-    // Urutkan listNegara
-    const sortedNegara = [...listNegara].sort((a, b) => {
-      let valA, valB;
-
-      if (field === 'name') {
-        valA = a.name?.common?.toLowerCase() || '';
-        valB = b.name?.common?.toLowerCase() || '';
-      } else if (field === 'capital') {
-        valA = (a.capital && a.capital[0]) ? a.capital[0].toLowerCase() : 'zzz';
-        valB = (b.capital && b.capital[0]) ? b.capital[0].toLowerCase() : 'zzz';
-      } else if (field === 'region') {
-        valA = a.region?.toLowerCase() || '';
-        valB = b.region?.toLowerCase() || '';
-      } else if (field === 'population') {
-        valA = a.population || 0;
-        valB = b.population || 0;
-      } else {
-        valA = a[field]?.toString().toLowerCase() || '';
-        valB = b[field]?.toString().toLowerCase() || '';
-      }
-
-      if (direction === 'asc') {
-        return valA < valB ? -1 : valA > valB ? 1 : 0;
-      } else {
-        return valA > valB ? -1 : valA < valB ? 1 : 0;
-      }
-    });
-
-    // Urutkan listFavorit
-    const sortedFavorit = [...listFavorit].sort((a, b) => {
-      let valA, valB;
-
-      if (field === 'name') {
-        valA = a.name?.common?.toLowerCase() || '';
-        valB = b.name?.common?.toLowerCase() || '';
-      } else if (field === 'capital') {
-        valA = (a.capital && a.capital[0]) ? a.capital[0].toLowerCase() : 'zzz';
-        valB = (b.capital && b.capital[0]) ? b.capital[0].toLowerCase() : 'zzz';
-      } else if (field === 'region') {
-        valA = a.region?.toLowerCase() || '';
-        valB = b.region?.toLowerCase() || '';
-      } else if (field === 'population') {
-        valA = a.population || 0;
-        valB = b.population || 0;
-      } else {
-        valA = a[field]?.toString().toLowerCase() || '';
-        valB = b[field]?.toString().toLowerCase() || '';
-      }
-
-      if (direction === 'asc') {
-        return valA < valB ? -1 : valA > valB ? 1 : 0;
-      } else {
-        return valA > valB ? -1 : valA < valB ? 1 : 0;
-      }
-    });
-
-    setListNegara(sortedNegara);
-    setListFavorit(sortedFavorit);
-  };
-
-  // --- LOGIKA FITUR ---
-
-  // Fungsi buat nyari negara berdasarkan nama
-  const handleCari = async (e) => {
+  // Handle search
+  const handleSearch = async (e) => {
     e.preventDefault();
-    if (!kataKunci && !selectedRegion) return ambilSemuaNegara(); // Kalo kosong, balikin ke data awal
+    if (!searchTerm.trim()) {
+      fetchCountries();
+      return;
+    }
 
     try {
       setLoading(true);
-      
-      let hasil = [];
-      
-      if (kataKunci) {
-        // Jika ada kata kunci, cari berdasarkan nama
-        let respon;
-        let apiUrl = `https://restcountries.com/v3.1/name/${kataKunci}?fields=name,capital,flags,region,population`;
-        
-        try {
-          respon = await fetch(apiUrl); // Tanpa headers
-        } catch (fetchError) {
-          console.warn('Pencarian nama negara gagal, mencoba alternatif...');
-        }
-        
-        if (respon && respon.ok) {
-          hasil = await respon.json();
-        } else {
-          // Coba endpoint alternatif untuk pencarian nama
-          try {
-            apiUrl = `https://restcountries.com/v3.1/name/${kataKunci}`;
-            respon = await fetch(apiUrl); // Tanpa headers
-            
-            if (respon.ok) {
-              hasil = await respon.json();
-            } else {
-              alert("Negaranya gak ketemu, coba cek tulisannya deh!");
-              setLoading(false);
-              return;
-            }
-          } catch (altError) {
-            alert("Negaranya gak ketemu, coba cek tulisannya deh!");
-            setLoading(false);
-            return;
-          }
-        }
+      const response = await fetch(`https://restcountries.com/v3.1/name/${searchTerm}?fields=name,capital,flags,region,population`);
+      if (response.ok) {
+        const data = await response.json();
+        setCountries(data);
+        setTotalPages(1);
+        setCurrentPage(1);
       } else {
-        // Jika tidak ada kata kunci, ambil semua data untuk filter region
-        let respon;
-        let apiUrl = 'https://restcountries.com/v3.1/all?fields=name,capital,flags,region,population';
-        
-        try {
-          respon = await fetch(apiUrl); // Tanpa headers
-        } catch (fetchError) {
-          console.warn('Endpoint utama gagal, mencoba alternatif...');
-        }
-        
-        if (!respon || !respon.ok) {
-          console.warn(`API error! status: ${respon ? respon.status : 'unknown'}. Menggunakan data contoh...`);
-          // Gunakan data contoh jika API gagal
-          hasil = [
-            {
-              name: { common: "Indonesia" },
-              capital: ["Jakarta"],
-              flags: { png: "https://flagcdn.com/w320/id.png" },
-              region: "Asia",
-              population: 273523615
-            },
-            {
-              name: { common: "United States" },
-              capital: ["Washington, D.C."],
-              flags: { png: "https://flagcdn.com/w320/us.png" },
-              region: "Americas",
-              population: 329484123
-            },
-            {
-              name: { common: "Germany" },
-              capital: ["Berlin"],
-              flags: { png: "https://flagcdn.com/w320/de.png" },
-              region: "Europe",
-              population: 83240525
-            },
-            {
-              name: { common: "Japan" },
-              capital: ["Tokyo"],
-              flags: { png: "https://flagcdn.com/w320/jp.png" },
-              region: "Asia",
-              population: 125836021
-            },
-            {
-              name: { common: "Brazil" },
-              capital: ["Brasília"],
-              flags: { png: "https://flagcdn.com/w320/br.png" },
-              region: "Americas",
-              population: 212559409
-            },
-            {
-              name: { common: "Nigeria" },
-              capital: ["Abuja"],
-              flags: { png: "https://flagcdn.com/w320/ng.png" },
-              region: "Africa",
-              population: 206139587
-            },
-            {
-              name: { common: "Australia" },
-              capital: ["Canberra"],
-              flags: { png: "https://flagcdn.com/w320/au.png" },
-              region: "Oceania",
-              population: 25687041
-            },
-            {
-              name: { common: "Canada" },
-              capital: ["Ottawa"],
-              flags: { png: "https://flagcdn.com/w320/ca.png" },
-              region: "Americas",
-              population: 38005238
-            },
-            {
-              name: { common: "France" },
-              capital: ["Paris"],
-              flags: { png: "https://flagcdn.com/w320/fr.png" },
-              region: "Europe",
-              population: 67391582
-            },
-            {
-              name: { common: "Egypt" },
-              capital: ["Cairo"],
-              flags: { png: "https://flagcdn.com/w320/eg.png" },
-              region: "Africa",
-              population: 102334403
-            }
-          ];
-        } else {
-          hasil = await respon.json();
-        }
+        setCountries([]);
       }
-
-      // Pastikan hasil adalah array sebelum menggunakan filter
-      if (Array.isArray(hasil)) {
-        // Terapkan filter region jika ada (baik dengan maupun tanpa kata kunci)
-        if (selectedRegion) {
-          hasil = hasil.filter(country => country?.region === selectedRegion);
-        }
-      } else {
-        console.error("Hasil dari API bukan array:", hasil);
-        hasil = [];
-      }
-
-      setListNegara(hasil);
       setLoading(false);
-    } catch (err) {
-      console.error("Error pas lagi nyari negara...", err);
-      alert("Error pas lagi nyari negara...");
+    } catch (error) {
+      console.error('Error searching countries:', error);
       setLoading(false);
     }
   };
 
-  // Fungsi untuk membuka modal catatan sebelum menambahkan ke favorit
-  const handleBukaCatatanFavorit = (negara) => {
-    // Cek apakah negara sudah ada di favorit
-    const sudahAda = listFavorit.some(fav => fav.name?.common === negara.name?.common);
-
-    if (sudahAda) {
-      alert("Negara ini udah ada di favorit kamu!");
-      return;
+  // Handle pagination
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
-    
-    setSelectedCountry(negara);
-    setInputCatatan(''); // Reset catatan
-    setShowNoteModal(true);
   };
 
-  // Fungsi untuk menambahkan negara ke favorit dengan catatan
-  const handleTambahFavorit = () => {
-    if (!selectedCountry) return;
-    
-    // Tambahkan negara ke list favorit dengan catatan
-    const negaraFavorit = {
-      ...selectedCountry,
-      isFavorite: true,
-      catatan: inputCatatan || '' // Tambahkan catatan jika ada
-    };
-    
-    setListFavorit([...listFavorit, negaraFavorit]);
-    setShowNoteModal(false);
-    setInputCatatan('');
-    setSelectedCountry(null);
-  };
-
-  // Fungsi buat hapus negara dari list (Delete)
-  const handleHapus = (namaNegara) => {
-    if (window.confirm(`Beneran mau hapus ${namaNegara} dari favorit?`)) {
-      // Hapus dari list favorit
-      const sisaFavorit = listFavorit.filter(item => item.name?.common !== namaNegara);
-      setListFavorit(sisaFavorit);
+  // Fetch countries on initial load and when page changes
+  useEffect(() => {
+    if (!searchTerm) {
+      fetchCountries();
     }
+  }, [currentPage]);
+
+  // If search term changes, reset to page 1 and search
+  useEffect(() => {
+    if (searchTerm) {
+      const timer = setTimeout(() => {
+        handleSearch({ preventDefault: () => {}, target: {} });
+      }, 500); // Debounce search
+      return () => clearTimeout(timer);
+    }
+  }, [searchTerm]);
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
   };
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-100 p-5 md:p-10 font-sans">
-        <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-2xl p-6">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header/Navbar */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-8">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl font-bold text-center">NationNote</h1>
+          <p className="text-center mt-2 text-blue-100">Temukan Negara Kesukaanmu</p>
           
-          {/* Navigation Header */}
-          {/* Hero Section with Gradient Banner */}
-          <div className="bg-gradient-to-r from-indigo-600 to-blue-500 rounded-2xl p-6 mb-8 text-white">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-extrabold">NationNote 🌏</h1>
-                <p className="mt-2 opacity-90">Catat dan cari info negara favoritmu di sini!</p>
-              </div>
-              <div className="flex space-x-4">
-                <NavLink
-                  to="/"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "bg-white text-indigo-600 px-6 py-3 rounded-lg font-bold flex items-center space-x-2"
-                      : "bg-indigo-700 bg-opacity-50 text-white px-6 py-3 rounded-lg font-bold flex items-center space-x-2 hover:bg-indigo-700"
-                  }
-                >
-                  <span>🌍</span>
-                  <span>Beranda</span>
-                </NavLink>
-                <NavLink
-                  to="/favorites"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "bg-white text-indigo-600 px-6 py-3 rounded-lg font-bold flex items-center space-x-2"
-                      : "bg-indigo-700 bg-opacity-50 text-white px-6 py-3 rounded-lg font-bold flex items-center space-x-2 hover:bg-indigo-700"
-                  }
-                >
-                  <span>❤️</span>
-                  <span>Favoritku</span>
-                </NavLink>
-              </div>
-            </div>
+          {/* Search Bar */}
+          <div className="mt-6 max-w-2xl mx-auto">
+            <form onSubmit={handleSearch} className="flex">
+              <input
+                type="text"
+                placeholder="Cari negara..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-grow p-3 rounded-l-lg text-gray-800 focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-r-lg flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Cari
+              </button>
+            </form>
           </div>
-
-          {/* Routes */}
-          <Routes>
-            <Route 
-              path="/" 
-              element={
-                <Home 
-                  listNegara={listNegara}
-                  loading={loading}
-                  kataKunci={kataKunci}
-                  setKataKunci={setKataKunci}
-                  selectedRegion={selectedRegion}
-                  setSelectedRegion={setSelectedRegion}
-                  sortField={sortField}
-                  sortDirection={sortDirection}
-                  sortList={sortList}
-                  handleCari={handleCari}
-                  filterByRegion={filterByRegion}
-                  handleBukaCatatanFavorit={handleBukaCatatanFavorit}
-                  listFavorit={listFavorit}
-                  ambilSemuaNegara={ambilSemuaNegara}
-                />
-              } 
-            />
-            <Route 
-              path="/favorites" 
-              element={
-                <Favorites 
-                  listFavorit={listFavorit}
-                  loading={loading}
-                  sortField={sortField}
-                  sortDirection={sortDirection}
-                  sortList={sortList}
-                  handleHapus={handleHapus}
-                />
-              } 
-            />
-          </Routes>
-
-          {/* Modal untuk menambahkan catatan */}
-          {showNoteModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg w-96 max-w-90vw">
-                <h3 className="text-lg font-bold mb-4">Tambah Catatan untuk {selectedCountry?.name?.common}</h3>
-                <textarea
-                  className="w-full p-2 border rounded mb-4"
-                  rows="4"
-                  placeholder="Tulis catatan pribadi tentang negara ini..."
-                  value={inputCatatan}
-                  onChange={(e) => setInputCatatan(e.target.value)}
-                />
-                <div className="flex justify-end space-x-2">
-                  <button
-                    onClick={() => {
-                      setShowNoteModal(false);
-                      setInputCatatan('');
-                      setSelectedCountry(null);
-                    }}
-                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    onClick={handleTambahFavorit}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                  >
-                    Simpan ke Favorit
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <footer className="mt-10 text-center text-gray-400 text-sm">
-            &copy; 2024 NationNote - Dibuat dengan cinta dan React
-          </footer>
+          
+          {/* Globe Icon and "Semua Negara" */}
+          <div className="flex items-center justify-center mt-6">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-lg">Semua Negara</span>
+          </div>
         </div>
       </div>
-    </Router>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <p className="mt-4 text-lg">Memuat negara...</p>
+          </div>
+        ) : (
+          <>
+            {/* Countries Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {countries.map((country, index) => (
+                <div key={index} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
+                  <div className="p-4">
+                    <div className="flex justify-center mb-3">
+                      <img 
+                        src={country.flags?.png || 'https://placehold.co/150x100?text=Flag'} 
+                        alt={`Flag of ${country.name?.common}`} 
+                        className="w-full h-32 object-contain rounded border"
+                      />
+                    </div>
+                    <h3 className="font-bold text-lg text-center text-gray-800 truncate">{country.name?.common || 'N/A'}</h3>
+                    <p className="text-gray-600 text-sm text-center mt-1"><strong>Ibu Kota:</strong> {country.capital && country.capital.length > 0 ? country.capital[0] : 'N/A'}</p>
+                    <p className="text-gray-600 text-sm text-center"><strong>Wilayah:</strong> {country.region || 'N/A'}</p>
+                    <p className="text-gray-700 text-sm text-center mt-1"><strong>Penduduk:</strong> {country.population ? country.population.toLocaleString('id-ID') : 'N/A'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {countries.length > 0 && !searchTerm && (
+              <div className="mt-10 flex flex-wrap justify-center items-center gap-2">
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-lg ${currentPage === 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                >
+                  &lt;&lt; Sebelumnya
+                </button>
+                
+                {getPageNumbers().map((page, index) => (
+                  page === '...' ? (
+                    <span key={index} className="px-3 py-2">...</span>
+                  ) : (
+                    <button
+                      key={index}
+                      onClick={() => goToPage(page)}
+                      className={`px-4 py-2 rounded-lg ${currentPage === page ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    >
+                      {page}
+                    </button>
+                  )
+                ))}
+                
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-lg ${currentPage === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                >
+                  Selanjutnya &gt;&gt;
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white py-6 mt-12">
+        <div className="container mx-auto px-4 text-center">
+          <p>&copy; 2024 NationNote. Dibuat dengan cinta dan React.</p>
+        </div>
+      </footer>
+    </div>
   );
-}
+};
 
 export default App;
