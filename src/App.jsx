@@ -36,6 +36,7 @@ function App() {
   const [listNegara, setListNegara] = useState([]); // Buat nampung daftar negara
   const [loading, setLoading] = useState(true); // Buat status loading pas ambil API
   const [kataKunci, setKataKunci] = useState(''); // Buat nyatet apa yang diketik di kolom cari
+  const [selectedRegion, setSelectedRegion] = useState(''); // Buat nyaring berdasarkan wilayah
   const [sortField, setSortField] = useState('name'); // Bidang untuk sorting
   const [sortDirection, setSortDirection] = useState('asc'); // Arah sorting
 
@@ -64,9 +65,31 @@ function App() {
     }
   };
 
+  // Fungsi untuk mendapatkan daftar wilayah yang unik dari data
+  const getUniqueRegions = () => {
+    const regions = [...new Set(listNegara.map(country => country.region))];
+    return regions.filter(region => region && region.trim() !== '');
+  };
+
   useEffect(() => {
     ambilSemuaNegara();
   }, []);
+
+  // Apply region filter when selectedRegion changes
+  useEffect(() => {
+    if (selectedRegion) {
+      const filtered = listNegara.filter(country => country.region === selectedRegion);
+      setListNegara(filtered);
+    } else if (!kataKunci) {
+      // Only reload if no search term is active
+      ambilSemuaNegara();
+    }
+  }, [selectedRegion]);
+
+  // --- FILTER BY REGION LOGIC ---
+  const filterByRegion = (region) => {
+    setSelectedRegion(region);
+  };
 
   // --- SORTING LOGIC ---
   const sortList = (field) => {
@@ -112,17 +135,33 @@ function App() {
   // Fungsi buat nyari negara berdasarkan nama
   const handleCari = async (e) => {
     e.preventDefault();
-    if (!kataKunci) return ambilSemuaNegara(); // Kalo kosong, balikin ke data awal
+    if (!kataKunci && !selectedRegion) return ambilSemuaNegara(); // Kalo kosong, balikin ke data awal
 
     try {
       setLoading(true);
-      const respon = await fetch(`https://restcountries.com/v3.1/name/${kataKunci}`);
-      if (respon.ok) {
-        const hasil = await respon.json();
-        setListNegara(hasil);
+      let hasil = [];
+
+      if (kataKunci) {
+        const respon = await fetch(`https://restcountries.com/v3.1/name/${kataKunci}`);
+        if (respon.ok) {
+          hasil = await respon.json();
+        } else {
+          alert("Negaranya gak ketemu, coba cek tulisannya deh!");
+          setLoading(false);
+          return;
+        }
       } else {
-        alert("Negaranya gak ketemu, coba cek tulisannya deh!");
+        // Ambil semua data jika hanya filter region yang aktif
+        const respon = await fetch('https://restcountries.com/v3.1/all');
+        hasil = await respon.json();
       }
+
+      // Terapkan filter region jika ada
+      if (selectedRegion) {
+        hasil = hasil.filter(country => country.region === selectedRegion);
+      }
+
+      setListNegara(hasil);
       setLoading(false);
     } catch (err) {
       console.error("Error pas lagi nyari negara...", err);
@@ -228,16 +267,48 @@ function App() {
 
           {/* Form Cari (Read/Search) */}
           <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
-            <h2 className="font-bold text-blue-800 mb-3">Cari Negara di API</h2>
-            <form onSubmit={handleCari} className="flex gap-2">
-              <input
-                type="text"
-                className="flex-1 p-2 border rounded-lg focus:outline-blue-400"
-                placeholder="Misal: Indonesia..."
-                value={kataKunci}
-                onChange={(e) => setKataKunci(e.target.value)}
-              />
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Cari</button>
+            <h2 className="font-bold text-blue-800 mb-3">Cari & Filter Negara</h2>
+            <form onSubmit={handleCari} className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 p-2 border rounded-lg focus:outline-blue-400"
+                  placeholder="Cari negara..."
+                  value={kataKunci}
+                  onChange={(e) => setKataKunci(e.target.value)}
+                />
+                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Cari</button>
+              </div>
+
+              {/* Filter per Wilayah */}
+              <div className="pt-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Filter per Wilayah:</label>
+                <div className="flex gap-2">
+                  <select
+                    value={selectedRegion}
+                    onChange={(e) => filterByRegion(e.target.value)}
+                    className="flex-1 p-2 border rounded-lg focus:outline-blue-400"
+                  >
+                    <option value="">Semua Wilayah</option>
+                    <option value="Asia">Asia</option>
+                    <option value="Europe">Europe</option>
+                    <option value="Africa">Africa</option>
+                    <option value="Americas">Americas</option>
+                    <option value="Oceania">Oceania</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRegion('');
+                      setKataKunci('');
+                      ambilSemuaNegara();
+                    }}
+                    className="bg-gray-500 text-white px-3 py-2 rounded-lg hover:bg-gray-600"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
             </form>
           </div>
 
