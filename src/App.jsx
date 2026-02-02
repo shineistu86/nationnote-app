@@ -561,7 +561,7 @@ function App() {
                   }
                 >
                   <span>🌍</span>
-                  <span>Country Shelf</span>
+                  <span>Beranda</span>
                 </NavLink>
                 <NavLink
                   to="/favorites"
