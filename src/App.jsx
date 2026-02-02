@@ -33,7 +33,8 @@ const BarisNegara = ({ data, aksiHapus, aksiEdit }) => {
 
 function App() {
   // --- TEMPAT NYIMPEN DATA (STATE) ---
-  const [listNegara, setListNegara] = useState([]); // Buat nampung daftar negara
+  const [listNegara, setListNegara] = useState([]); // Buat nampung daftar negara dari API
+  const [listFavorit, setListFavorit] = useState([]); // Buat nampung daftar negara favorit
   const [loading, setLoading] = useState(true); // Buat status loading pas ambil API
   const [kataKunci, setKataKunci] = useState(''); // Buat nyatet apa yang diketik di kolom cari
   const [selectedRegion, setSelectedRegion] = useState(''); // Buat nyaring berdasarkan wilayah
@@ -524,23 +525,24 @@ function App() {
     }
   };
 
-  // Fungsi buat nambah negara buatan sendiri (Create)
+  // Fungsi buat nambah negara ke favorit (Create)
   const handleTambahNegara = (e) => {
     e.preventDefault();
     if (!inputNama) return alert("Namanya diisi dulu ya!");
 
-    // Data negara baru yang mau kita selipin
+    // Data negara favorit baru
     const negaraBaru = {
       name: { common: inputNama },
       capital: [inputIbukota || 'Misteri'],
       flags: { png: inputFlagUrl || 'https://via.placeholder.com/150?text=Baru' },
       region: inputRegion || 'Kustom',
       population: parseInt(inputPopulation) || 0,
-      id: Date.now() // Tambahkan ID unik untuk membedakan negara buatan
+      id: Date.now(), // Tambahkan ID unik untuk membedakan negara favorit
+      isFavorite: true // Tandai bahwa ini adalah negara favorit
     };
 
-    // Update list negara: yang baru ditaruh paling atas
-    setListNegara([negaraBaru, ...listNegara]);
+    // Tambahkan ke list favorit, bukan ke list utama
+    setListFavorit([negaraBaru, ...listFavorit]);
 
     // Kosongin lagi inputannya
     resetForm();
@@ -551,10 +553,9 @@ function App() {
     e.preventDefault();
     if (!inputNama) return alert("Namanya diisi dulu ya!");
 
-    // Update negara yang dipilih
-    const updatedList = listNegara.map(item => {
-      if ((item.id && item.id === currentEditId) ||
-          (!item.id && item.name?.common === currentEditId)) {
+    // Update negara favorit yang dipilih
+    const updatedFavList = listFavorit.map(item => {
+      if (item.id === currentEditId) {
         return {
           ...item,
           name: { common: inputNama },
@@ -567,7 +568,7 @@ function App() {
       return item;
     });
 
-    setListNegara(updatedList);
+    setListFavorit(updatedFavList);
 
     // Kosongin form dan kembali ke mode tambah
     resetForm();
@@ -592,17 +593,33 @@ function App() {
     setInputPopulation(negara.population ? negara.population.toString() : '');
     setInputFlagUrl(negara.flags?.png || '');
     setIsEditing(true);
-    setCurrentEditId(negara.id || negara.name?.common);
+    setCurrentEditId(negara.id); // Gunakan ID langsung karena sekarang semua negara favorit punya ID
   };
 
   // Fungsi buat hapus negara dari list (Delete)
   const handleHapus = (namaNegara) => {
     if (window.confirm(`Beneran mau hapus ${namaNegara}?`)) {
-      const sisaNegara = listNegara.filter(item =>
+      // Cek apakah negara ada di list favorit
+      const favItem = listFavorit.find(item =>
         (item.id && item.id === namaNegara) ||
         (!item.id && item.name?.common === namaNegara)
       );
-      setListNegara(sisaNegara);
+
+      if (favItem) {
+        // Hapus dari list favorit
+        const sisaFavorit = listFavorit.filter(item =>
+          (item.id && item.id === namaNegara) ||
+          (!item.id && item.name?.common === namaNegara)
+        );
+        setListFavorit(sisaFavorit);
+      } else {
+        // Jika bukan dari favorit, hapus dari list utama (untuk negara API)
+        const sisaNegara = listNegara.filter(item =>
+          (item.id && item.id === namaNegara) ||
+          (!item.id && item.name?.common === namaNegara)
+        );
+        setListNegara(sisaNegara);
+      }
     }
   };
 
@@ -748,45 +765,82 @@ function App() {
             <p className="text-xl animate-bounce">Sabar ya, lagi ngambil data...</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-200 text-gray-700 uppercase text-sm">
-                  <th className="p-3 text-center cursor-pointer hover:bg-gray-300" onClick={() => sortList('flags')}>
-                    Bendera {sortField === 'flags' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="p-3 cursor-pointer hover:bg-gray-300" onClick={() => sortList('name')}>
-                    Nama {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="p-3 cursor-pointer hover:bg-gray-300" onClick={() => sortList('capital')}>
-                    Ibukota {sortField === 'capital' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="p-3 cursor-pointer hover:bg-gray-300" onClick={() => sortList('region')}>
-                    Wilayah {sortField === 'region' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="p-3 text-right cursor-pointer hover:bg-gray-300" onClick={() => sortList('population')}>
-                    Populasi {sortField === 'population' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="p-3 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {listNegara.length > 0 ? (
-                  listNegara.map((item, index) => (
-                    <BarisNegara
-                      key={item.id || `${item.name?.common}-${index}`}
-                      data={item}
-                      aksiHapus={handleHapus}
-                      aksiEdit={handleEditClick}
-                    />
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="p-10 text-center text-gray-400">Wah, listnya kosong nih...</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="space-y-8">
+            {/* Tabel untuk negara favorit */}
+            {listFavorit.length > 0 && (
+              <div>
+                <h3 className="text-xl font-bold text-purple-700 mb-4">Negara Favorit Kamu</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-purple-200 text-gray-700 uppercase text-sm">
+                        <th className="p-3 text-center">Bendera</th>
+                        <th className="p-3">Nama</th>
+                        <th className="p-3">Ibukota</th>
+                        <th className="p-3">Wilayah</th>
+                        <th className="p-3 text-right">Populasi</th>
+                        <th className="p-3 text-center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {listFavorit.map((item, index) => (
+                        <BarisNegara
+                          key={`fav-${item.id}`}
+                          data={item}
+                          aksiHapus={handleHapus}
+                          aksiEdit={handleEditClick}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Tabel untuk hasil pencarian/API */}
+            <div>
+              <h3 className="text-xl font-bold text-blue-700 mb-4">Hasil Pencarian</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-200 text-gray-700 uppercase text-sm">
+                      <th className="p-3 text-center cursor-pointer hover:bg-gray-300" onClick={() => sortList('flags')}>
+                        Bendera {sortField === 'flags' && (sortDirection === 'asc' ? '↑' : '↓')}
+                      </th>
+                      <th className="p-3 cursor-pointer hover:bg-gray-300" onClick={() => sortList('name')}>
+                        Nama {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                      </th>
+                      <th className="p-3 cursor-pointer hover:bg-gray-300" onClick={() => sortList('capital')}>
+                        Ibukota {sortField === 'capital' && (sortDirection === 'asc' ? '↑' : '↓')}
+                      </th>
+                      <th className="p-3 cursor-pointer hover:bg-gray-300" onClick={() => sortList('region')}>
+                        Wilayah {sortField === 'region' && (sortDirection === 'asc' ? '↑' : '↓')}
+                      </th>
+                      <th className="p-3 text-right cursor-pointer hover:bg-gray-300" onClick={() => sortList('population')}>
+                        Populasi {sortField === 'population' && (sortDirection === 'asc' ? '↑' : '↓')}
+                      </th>
+                      <th className="p-3 text-center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {listNegara.length > 0 ? (
+                      listNegara.map((item, index) => (
+                        <BarisNegara
+                          key={`api-${item.id || `${item.name?.common}-${index}`}`}
+                          data={item}
+                          aksiHapus={handleHapus}
+                          aksiEdit={handleEditClick}
+                        />
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="p-10 text-center text-gray-400">Wah, listnya kosong nih...</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
