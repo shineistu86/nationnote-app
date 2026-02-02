@@ -55,12 +55,26 @@ function App() {
     try {
       setLoading(true);
       const respon = await fetch('https://restcountries.com/v3.1/all');
+
+      if (!respon.ok) {
+        throw new Error(`HTTP error! status: ${respon.status}`);
+      }
+
       const hasil = await respon.json();
-      // Kita ambil 10 data aja ya biar gak kebanyakan pas pertama muncul
-      setListNegara(hasil.slice(0, 10));
+
+      // Pastikan hasil adalah array sebelum menggunakan slice
+      if (Array.isArray(hasil)) {
+        // Kita ambil 10 data aja ya biar gak kebanyakan pas pertama muncul
+        setListNegara(hasil.slice(0, 10));
+      } else {
+        console.error("Hasil dari API bukan array:", hasil);
+        setListNegara([]);
+      }
+
       setLoading(false);
     } catch (error) {
       console.error("Aduh, gagal ambil data negaranya nih:", error);
+      setListNegara([]);
       setLoading(false);
     }
   };
@@ -79,11 +93,30 @@ function App() {
   useEffect(() => {
     if (!kataKunci && selectedRegion) {
       // Only apply region filter if there's no active search term
-      const allCountriesResponse = fetch('https://restcountries.com/v3.1/all');
-      allCountriesResponse.then(res => res.json()).then(allCountries => {
-        const filtered = allCountries.filter(country => country.region === selectedRegion);
-        setListNegara(filtered);
-      });
+      const fetchAllCountries = async () => {
+        try {
+          const respon = await fetch('https://restcountries.com/v3.1/all');
+
+          if (!respon.ok) {
+            throw new Error(`HTTP error! status: ${respon.status}`);
+          }
+
+          const allCountries = await respon.json();
+
+          if (Array.isArray(allCountries)) {
+            const filtered = allCountries.filter(country => country.region === selectedRegion);
+            setListNegara(filtered);
+          } else {
+            console.error("Hasil dari API bukan array:", allCountries);
+            setListNegara([]);
+          }
+        } catch (error) {
+          console.error("Gagal mengambil data untuk filter wilayah:", error);
+          setListNegara([]);
+        }
+      };
+
+      fetchAllCountries();
     } else if (!kataKunci && !selectedRegion) {
       // Reload all countries if both filters are cleared
       ambilSemuaNegara();
@@ -159,12 +192,23 @@ function App() {
       } else {
         // Jika tidak ada kata kunci, ambil semua data
         const respon = await fetch('https://restcountries.com/v3.1/all');
+
+        if (!respon.ok) {
+          throw new Error(`HTTP error! status: ${respon.status}`);
+        }
+
         hasil = await respon.json();
       }
 
-      // Terapkan filter region jika ada (baik dengan maupun tanpa kata kunci)
-      if (selectedRegion) {
-        hasil = hasil.filter(country => country.region === selectedRegion);
+      // Pastikan hasil adalah array sebelum menggunakan filter
+      if (Array.isArray(hasil)) {
+        // Terapkan filter region jika ada (baik dengan maupun tanpa kata kunci)
+        if (selectedRegion) {
+          hasil = hasil.filter(country => country.region === selectedRegion);
+        }
+      } else {
+        console.error("Hasil dari API bukan array:", hasil);
+        hasil = [];
       }
 
       setListNegara(hasil);
