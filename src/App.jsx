@@ -12,6 +12,7 @@ const BarisNegara = ({ data, aksiHapus, aksiTambahFavorit, isFavorit }) => {
       <td className="p-3">{data.capital && data.capital.length > 0 ? data.capital[0] : 'Ga ada ibukota'}</td>
       <td className="p-3">{data.region || 'N/A'}</td>
       <td className="p-3 text-right">{data.population ? data.population.toLocaleString('id-ID') : 'N/A'}</td>
+      <td className="p-3">{data.catatan || 'Tidak ada catatan'}</td>
       <td className="p-3 text-center flex justify-center space-x-2">
         {/* Tombol untuk menambahkan ke favorit */}
         {!isFavorit && (
@@ -44,6 +45,9 @@ function App() {
   const [selectedRegion, setSelectedRegion] = useState(''); // Buat nyaring berdasarkan wilayah
   const [sortField, setSortField] = useState('name'); // Bidang untuk sorting
   const [sortDirection, setSortDirection] = useState('asc'); // Arah sorting
+  const [inputCatatan, setInputCatatan] = useState(''); // Catatan pribadi untuk negara favorit
+  const [showNoteModal, setShowNoteModal] = useState(false); // Menampilkan modal untuk menambahkan catatan
+  const [selectedCountry, setSelectedCountry] = useState(null); // Negara yang dipilih untuk ditambahkan catatan
 
   // --- AMBIL DATA DARI API ---
   // Fungsi ini jalan otomatis pas halaman pertama kali dibuka
@@ -525,17 +529,36 @@ function App() {
     }
   };
 
-  // Fungsi untuk menambahkan negara ke favorit
-  const handleTambahFavorit = (negara) => {
+  // Fungsi untuk membuka modal catatan sebelum menambahkan ke favorit
+  const handleBukaCatatanFavorit = (negara) => {
     // Cek apakah negara sudah ada di favorit
     const sudahAda = listFavorit.some(fav => fav.name?.common === negara.name?.common);
 
-    if (!sudahAda) {
-      // Tambahkan negara ke list favorit
-      setListFavorit([...listFavorit, {...negara, isFavorite: true}]);
-    } else {
+    if (sudahAda) {
       alert("Negara ini udah ada di favorit kamu!");
+      return;
     }
+
+    setSelectedCountry(negara);
+    setInputCatatan(''); // Reset catatan
+    setShowNoteModal(true);
+  };
+
+  // Fungsi untuk menambahkan negara ke favorit dengan catatan
+  const handleTambahFavorit = () => {
+    if (!selectedCountry) return;
+
+    // Tambahkan negara ke list favorit dengan catatan
+    const negaraFavorit = {
+      ...selectedCountry,
+      isFavorite: true,
+      catatan: inputCatatan || '' // Tambahkan catatan jika ada
+    };
+
+    setListFavorit([...listFavorit, negaraFavorit]);
+    setShowNoteModal(false);
+    setInputCatatan('');
+    setSelectedCountry(null);
   };
 
   // Fungsi buat hapus negara dari list (Delete)
@@ -639,6 +662,7 @@ function App() {
                         <th className="p-3">Ibukota</th>
                         <th className="p-3">Wilayah</th>
                         <th className="p-3 text-right">Populasi</th>
+                        <th className="p-3">Catatan</th>
                         <th className="p-3 text-center">Aksi</th>
                       </tr>
                     </thead>
@@ -648,7 +672,7 @@ function App() {
                           key={`fav-${item.name?.common || index}`}
                           data={item}
                           aksiHapus={handleHapus}
-                          aksiTambahFavorit={handleTambahFavorit}
+                          aksiTambahFavorit={handleBukaCatatanFavorit}
                           isFavorit={true}
                         />
                       ))}
@@ -680,6 +704,7 @@ function App() {
                       <th className="p-3 text-right cursor-pointer hover:bg-gray-300" onClick={() => sortList('population')}>
                         Populasi {sortField === 'population' && (sortDirection === 'asc' ? '↑' : '↓')}
                       </th>
+                      <th className="p-3">Catatan</th>
                       <th className="p-3 text-center">Aksi</th>
                     </tr>
                   </thead>
@@ -692,18 +717,52 @@ function App() {
                             key={`api-${item.name?.common || index}`}
                             data={item}
                             aksiHapus={handleHapus}
-                            aksiTambahFavorit={handleTambahFavorit}
+                            aksiTambahFavorit={handleBukaCatatanFavorit}
                             isFavorit={isFavorit}
                           />
                         );
                       })
                     ) : (
                       <tr>
-                        <td colSpan="6" className="p-10 text-center text-gray-400">Wah, listnya kosong nih...</td>
+                        <td colSpan="7" className="p-10 text-center text-gray-400">Wah, listnya kosong nih...</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal untuk menambahkan catatan */}
+        {showNoteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-96 max-w-90vw">
+              <h3 className="text-lg font-bold mb-4">Tambah Catatan untuk {selectedCountry?.name?.common}</h3>
+              <textarea
+                className="w-full p-2 border rounded mb-4"
+                rows="4"
+                placeholder="Tulis catatan pribadi tentang negara ini..."
+                value={inputCatatan}
+                onChange={(e) => setInputCatatan(e.target.value)}
+              />
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => {
+                    setShowNoteModal(false);
+                    setInputCatatan('');
+                    setSelectedCountry(null);
+                  }}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleTambahFavorit}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                  Simpan ke Favorit
+                </button>
               </div>
             </div>
           </div>
