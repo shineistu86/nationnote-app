@@ -93,35 +93,13 @@ function App() {
   useEffect(() => {
     if (!kataKunci && selectedRegion) {
       // Only apply region filter if there's no active search term
-      const fetchAllCountries = async () => {
-        try {
-          const respon = await fetch('https://restcountries.com/v3.1/all');
-
-          if (!respon.ok) {
-            throw new Error(`HTTP error! status: ${respon.status}`);
-          }
-
-          const allCountries = await respon.json();
-
-          if (Array.isArray(allCountries)) {
-            const filtered = allCountries.filter(country => country.region === selectedRegion);
-            setListNegara(filtered);
-          } else {
-            console.error("Hasil dari API bukan array:", allCountries);
-            setListNegara([]);
-          }
-        } catch (error) {
-          console.error("Gagal mengambil data untuk filter wilayah:", error);
-          setListNegara([]);
-        }
-      };
-
-      fetchAllCountries();
+      // But don't trigger this effect when the search button is clicked
+      // The search button will handle region filtering in handleCari
     } else if (!kataKunci && !selectedRegion) {
       // Reload all countries if both filters are cleared
       ambilSemuaNegara();
     }
-  }, [selectedRegion, kataKunci]);
+  }, [selectedRegion, kataKunci]); // Only update when region or keyword changes, not on search
 
   // --- FILTER BY REGION LOGIC ---
   const filterByRegion = (region) => {
@@ -190,7 +168,7 @@ function App() {
           return;
         }
       } else {
-        // Jika tidak ada kata kunci, ambil semua data
+        // Jika tidak ada kata kunci, ambil semua data untuk filter region
         const respon = await fetch('https://restcountries.com/v3.1/all');
 
         if (!respon.ok) {
@@ -204,7 +182,7 @@ function App() {
       if (Array.isArray(hasil)) {
         // Terapkan filter region jika ada (baik dengan maupun tanpa kata kunci)
         if (selectedRegion) {
-          hasil = hasil.filter(country => country.region === selectedRegion);
+          hasil = hasil.filter(country => country?.region === selectedRegion);
         }
       } else {
         console.error("Hasil dari API bukan array:", hasil);
