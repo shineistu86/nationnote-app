@@ -544,34 +544,39 @@ function App() {
         <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-2xl p-6">
           
           {/* Navigation Header */}
-          <nav className="mb-10">
-            <div className="flex justify-between items-center border-b pb-4">
-              <h1 className="text-3xl font-extrabold text-blue-600">NationNote 🌏</h1>
+          {/* Hero Section with Gradient Banner */}
+          <div className="bg-gradient-to-r from-indigo-600 to-blue-500 rounded-2xl p-6 mb-8 text-white">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-extrabold">NationNote 🌏</h1>
+                <p className="mt-2 opacity-90">Catat dan cari info negara favoritmu di sini!</p>
+              </div>
               <div className="flex space-x-4">
                 <NavLink
                   to="/"
                   className={({ isActive }) =>
                     isActive
-                      ? "bg-blue-600 text-white px-4 py-2 rounded-lg font-medium"
-                      : "bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300"
+                      ? "bg-white text-indigo-600 px-6 py-3 rounded-lg font-bold flex items-center space-x-2"
+                      : "bg-indigo-700 bg-opacity-50 text-white px-6 py-3 rounded-lg font-bold flex items-center space-x-2 hover:bg-indigo-700"
                   }
                 >
-                  Beranda
+                  <span>🌍</span>
+                  <span>Country Shelf</span>
                 </NavLink>
                 <NavLink
                   to="/favorites"
                   className={({ isActive }) =>
                     isActive
-                      ? "bg-purple-600 text-white px-4 py-2 rounded-lg font-medium"
-                      : "bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300"
+                      ? "bg-white text-indigo-600 px-6 py-3 rounded-lg font-bold flex items-center space-x-2"
+                      : "bg-indigo-700 bg-opacity-50 text-white px-6 py-3 rounded-lg font-bold flex items-center space-x-2 hover:bg-indigo-700"
                   }
                 >
-                  Favorit ({listFavorit.length})
+                  <span>❤️</span>
+                  <span>Favoritku</span>
                 </NavLink>
               </div>
             </div>
-            <p className="text-gray-500 mt-2 text-center">Catat dan cari info negara favoritmu di sini!</p>
-          </nav>
+          </div>
 
           {/* Routes */}
           <Routes>
