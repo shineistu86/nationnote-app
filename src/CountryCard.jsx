@@ -1,34 +1,38 @@
 import React from 'react';
 
-const CountryCard = ({ country, isFavorit, onToggleFavorite }) => {
+const CountryCard = ({ country }) => {
   return (
-    <div className="bg-white border rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className="p-4">
-        <div className="flex justify-center mb-3">
-          <img 
-            src={country.flags?.png || 'https://via.placeholder.com/150?text=Flag'} 
-            alt={`bendera ${country.name?.common}`} 
-            className="w-16 h-12 object-contain rounded border"
-          />
-        </div>
-        <h3 className="font-bold text-lg text-center text-gray-800 truncate">{country.name?.common || 'N/A'}</h3>
-        <p className="text-gray-600 text-sm text-center truncate">{country.capital && country.capital.length > 0 ? country.capital[0] : 'Ga ada ibukota'}</p>
-        <p className="text-gray-500 text-sm text-center truncate">{country.region || 'N/A'}</p>
-        <p className="text-gray-700 text-sm text-center mt-1">{country.population ? country.population.toLocaleString('id-ID') : 'N/A'} penduduk</p>
-        <div className="mt-3 text-xs text-gray-500 text-center truncate">
-          {country.catatan || 'Tidak ada catatan'}
-        </div>
-        <div className="mt-4 flex justify-center">
-          <button
-            onClick={() => onToggleFavorite(country)}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              isFavorit 
-                ? 'bg-red-500 hover:bg-red-600 text-white' 
-                : 'bg-green-500 hover:bg-green-600 text-white'
-            }`}
-          >
-            {isFavorit ? 'Hapus Favorit' : 'Tambah Favorit'}
-          </button>
+    <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden group">
+      {/* 1. Bendera (Top) */}
+      <div className="aspect-[4/3] overflow-hidden bg-gray-100">
+        <img 
+          src={country.flags?.svg || country.flags?.png || 'https://placehold.co/600x400?text=Flag'} 
+          alt={country.name.common} 
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+        />
+      </div>
+
+      {/* 2. Nama & Atribut (Menurun) */}
+      <div className="p-7">
+        <h3 className="text-xl font-black text-gray-900 mb-6 group-hover:text-indigo-600 transition-colors">
+          {country.name.common}
+        </h3>
+        
+        <div className="space-y-4">
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Ibu Kota</span>
+            <span className="text-gray-700 font-semibold">{country.capital?.[0] || 'Tidak ada'}</span>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Wilayah</span>
+            <span className="text-gray-700 font-semibold">{country.region}</span>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Penduduk</span>
+            <span className="text-gray-700 font-semibold">{country.population?.toLocaleString('id-ID') || 'N/A'} Jiwa</span>
+          </div>
         </div>
       </div>
     </div>
