@@ -24,7 +24,7 @@ Tujuan aplikasi ini adalah:
 - Memenuhi kebutuhan tugas mata kuliah Praktikum Pemrograman Web
 
 ## Anggota Kelompok
-1. Hisyam Eka Pramudita - 2307016
+1. Hisyam Eka Pramudita - 2307016 (shineistu86)
 2. Wida Rahayu - 2307028
 3. Rendi Ramdani Sobarna - 2307013
 
