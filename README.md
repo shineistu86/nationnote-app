@@ -21,7 +21,7 @@ Tujuan aplikasi ini adalah:
 - Menyajikan informasi negara secara lengkap dan terstruktur
 - Melatih penggunaan React dalam pengambilan data dari Public API
 - Mengimplementasikan routing, pencarian, dan tampilan responsif
-- Memenuhi kebutuhan tugas mata kuliah Pemrograman Web
+- Memenuhi kebutuhan tugas mata kuliah Praktikum Pemrograman Web
 
 ## Anggota Kelompok
 1. Nama Lengkap: Hisyam Eka Pramudita - NIM: 2307016
