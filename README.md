@@ -43,6 +43,8 @@ Tujuan aplikasi ini adalah:
 4. Jalankan aplikasi: `npm run dev`
 5. Buka browser dan akses: `http://localhost:5173`
 
-## Screenshot
+### Halaman Utama
 ![Halaman Utama](screenshots/halaman-utama.png)
+
+### Halaman Detail
 ![Halaman Detail](screenshots/halaman-detail.png)
