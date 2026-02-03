@@ -21,12 +21,12 @@ Tujuan aplikasi ini adalah:
 - Menyajikan informasi negara secara lengkap dan terstruktur
 - Melatih penggunaan React dalam pengambilan data dari Public API
 - Mengimplementasikan routing, pencarian, dan tampilan responsif
-- Memenuhi kebutuhan tugas mata kuliah Pemrograman Web
+- Memenuhi kebutuhan tugas mata kuliah Praktikum Pemrograman Web
 
 ## Anggota Kelompok
-1. Nama Lengkap: Hisyam Eka Pramudita - NIM: 2307016
-2. Nama Lengkap: Wida Rahayu - NIM: 2307028
-3. Nama Lengkap: Rendi Ramdani Sobarna - NIM: 2307013
+1. Hisyam Eka Pramudita - 2307016
+2. Wida Rahayu - 2307028
+3. Rendi Ramdani Sobarna - 2307013
 
 ## Fitur Aplikasi
 - Fetch data dari API (REST Countries API)
