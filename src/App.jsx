@@ -10,7 +10,7 @@ function App() {
       <div className="app-container">
         <header className="app-header">
           <div className="header-content">
-            <h1>NotionNote</h1>
+            <h1>NationNote</h1>
             <p>Website Informasi Negara Dunia</p>
           </div>
         </header>
