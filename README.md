@@ -23,7 +23,7 @@ Tujuan aplikasi ini adalah:
 - Mengimplementasikan routing, pencarian, dan tampilan responsif
 - Memenuhi kebutuhan tugas mata kuliah Praktikum Pemrograman Web
 
-## Anggota Kelompok
+## Anggota Kelompok 3
 1. Hisyam Eka Pramudita - 2307016 (shineistu86)
 2. Wida Rahayu - 2307028
 3. Rendi Ramdani Sobarna - 2307013
